@@ -800,7 +800,7 @@ public class Cabina {
 
         // Botón "CANCELAR RESERVA"
         BotonRedondeado btnConfirmar = new BotonRedondeado("CANCELAR RESERVA", 25);
-        btnConfirmar.setPreferredSize(new Dimension(180, 45));
+        btnConfirmar.setPreferredSize(new Dimension(200, 45));
         btnConfirmar.setBackground(new Color(244, 67, 54)); // Rojo
 
         // Botón "CERRAR"

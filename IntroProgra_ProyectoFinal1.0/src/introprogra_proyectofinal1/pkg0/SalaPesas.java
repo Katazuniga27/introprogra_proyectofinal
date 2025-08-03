@@ -275,7 +275,7 @@ public class SalaPesas {
                     return;
                 }
 
-                if (ingresarSalaPesas(id, horarioSeleccionado)) {
+                if (ingresarSalaPesas(id, horarioSeleccionado, dialogo)) {
                     mostrarMensajeExito(dialogo, "Reserva realizada exitosamente");
                     dialogo.dispose();
                     parent.dispose();
@@ -642,16 +642,17 @@ public class SalaPesas {
     }
 
     // === MÉTODOS DE LÓGICA DE NEGOCIO (ADAPTADOS) ===
-    
-    public boolean ingresarSalaPesas(int id, int horarioIndex) {
+    public boolean ingresarSalaPesas(int id, int horarioIndex, Component parent) {
         // Validar si el horario ya está lleno
         if (contadorPorHorario[horarioIndex] >= 50) {
+            mostrarMensajeError(parent, "Este horario está lleno");
             return false;
         }
 
         // Validar si el usuario ya está inscrito en ese horario
         for (int i = 0; i < contadorPorHorario[horarioIndex]; i++) {
             if (idsPorHorario[horarioIndex][i] == id) {
+                mostrarMensajeError(parent, "Ya tienes una reserva en este horario");
                 return false;
             }
         }
@@ -701,9 +702,9 @@ public class SalaPesas {
         }
     }
 
-    public void ingresarSalaPesas(int id) {
+    public boolean ingresarSalaPesas(int id, int horarioIndex) {
         // Método legacy - usar la interfaz moderna
-        abrirInterfaz();
+        return ingresarSalaPesas(id, horarioIndex, null);
     }
 
     public void mostrarPresentesSalaPesas() {

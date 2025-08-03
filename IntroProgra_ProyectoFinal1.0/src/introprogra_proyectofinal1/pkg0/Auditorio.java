@@ -342,8 +342,6 @@ public class Auditorio {
                 icono = "🏥";
             case "rutinas especiales" ->
                 icono = "💪";
-            case "capacitaciones" ->
-                icono = "🎓";
         }
 
         // Crea una etiqueta para mostrar el icono, centrada y con fuente grande
@@ -495,13 +493,7 @@ public class Auditorio {
         // Panel para seleccionar la charla
         JPanel panelCharlas = new JPanel(new GridLayout(2, 1, 10, 10));
         panelCharlas.setOpaque(false);
-        panelCharlas.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.WHITE),
-                "Seleccionar Charla",
-                0, 0,
-                new Font("Arial", Font.BOLD, 14),
-                Color.WHITE
-        ));
+        panelCharlas.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.WHITE), "Seleccionar Charla", 0, 0, new Font("Arial", Font.BOLD, 14), Color.WHITE));
 
         // Grupo de botones para seleccionar solo una charla
         ButtonGroup grupoCharlas = new ButtonGroup();
@@ -545,6 +537,7 @@ public class Auditorio {
                     return;
                 }
 
+                // Obtener la charla seleccionada
                 int charlaSeleccionada = -1;
                 for (int i = 0; i < radioButtons.length; i++) {
                     if (radioButtons[i].isSelected()) {
@@ -553,16 +546,40 @@ public class Auditorio {
                     }
                 }
 
+                //Verificar si seleccionó la charla
                 if (charlaSeleccionada == -1) {
                     mostrarMensajeError(dialogo, "Debe seleccionar una charla");
                     return;
                 }
 
-                inscribirParticipanteAuditorio(id);
-                mostrarMensajeExito(dialogo, "Inscripción realizada exitosamente");
-                dialogo.dispose();
-                parent.dispose();
-                abrirInterfaz(); // Refrescar la interfaz
+                // Verificar si hay cupos disponibles
+                if (contarCupos(charlaSeleccionada) == 0) {
+                    mostrarMensajeError(dialogo, "No hay cupos disponibles en esta charla");
+                    return;
+                }
+
+                // Verificar si ya está inscrito
+                String idParticipante = String.valueOf(id);
+                for (int i = 0; i < 30; i++) {
+                    if (idParticipante.equals(inscripciones[charlaSeleccionada][i])) {
+                        mostrarMensajeError(dialogo, "Ya estás inscrito en esta charla");
+                        return;
+                    }
+                }
+
+                // Inscribir al participante
+                for (int i = 0; i < 30; i++) {
+                    if (inscripciones[charlaSeleccionada][i] == null) {
+                        inscripciones[charlaSeleccionada][i] = idParticipante;
+                        mostrarMensajeExito(dialogo, "¡Inscripción exitosa en la charla de "
+                                + temas[charlaSeleccionada % temas.length] + " a las "
+                                + horarios[charlaSeleccionada] + "!");
+                        dialogo.dispose();
+                        parent.dispose();
+                        abrirInterfaz();
+                        return;
+                    }
+                }
             } catch (NumberFormatException ex) {
                 mostrarMensajeError(dialogo, "ID debe ser un número válido");
             }
@@ -588,219 +605,217 @@ public class Auditorio {
         dialogo.setVisible(true);
     }
 
-// Muestra el diálogo para modificar el nombre de una charla
-    // Muestra el diálogo decorado para modificar el nombre de una charla
-private void mostrarDialogoModificar(JFrame parent) {
-    // Crea un diálogo modal (bloquea la ventana principal hasta cerrarse)
-    JDialog dialogo = new JDialog(parent, "Modificar Charla", true);
-    // Define el tamaño del diálogo
-    dialogo.setSize(550, 500);
-    // Centra el diálogo respecto a la ventana principal
-    dialogo.setLocationRelativeTo(parent);
+    // Muestra el diálogo para modificar el nombre de una charla
+    private void mostrarDialogoModificar(JFrame parent) {
+        // Crea un diálogo modal (bloquea la ventana principal hasta cerrarse)
+        JDialog dialogo = new JDialog(parent, "Modificar Charla", true);
+        // Define el tamaño del diálogo
+        dialogo.setSize(550, 500);
+        // Centra el diálogo respecto a la ventana principal
+        dialogo.setLocationRelativeTo(parent);
 
-    // Panel de fondo con imagen para el diálogo
-    FondoPanel fondoDialogo = new FondoPanel("/imagenes/photo-1534438327276-14e5300c3a48.jpg");
-    fondoDialogo.setLayout(new BorderLayout());
-    dialogo.setContentPane(fondoDialogo);
+        // Panel de fondo con imagen para el diálogo
+        FondoPanel fondoDialogo = new FondoPanel("/imagenes/photo-1534438327276-14e5300c3a48.jpg");
+        fondoDialogo.setLayout(new BorderLayout());
+        dialogo.setContentPane(fondoDialogo);
 
-    // Panel principal del diálogo
-    JPanel panelPrincipal = new JPanel(new BorderLayout());
-    // Hace al panel invisible para mostrar el fondo
-    panelPrincipal.setOpaque(false);
-    // Añade margen interno
-    panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // Panel principal del diálogo
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
+        // Hace al panel invisible para mostrar el fondo
+        panelPrincipal.setOpaque(false);
+        // Añade margen interno
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-    // === TÍTULO DEL DIÁLOGO ===
-    JLabel titulo = new JLabel("MODIFICAR CHARLA", SwingConstants.CENTER);
-    titulo.setFont(new Font("Arial", Font.BOLD, 24));
-    titulo.setForeground(Color.WHITE);
-    titulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        // === TÍTULO DEL DIÁLOGO ===
+        JLabel titulo = new JLabel("MODIFICAR CHARLA", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 24));
+        titulo.setForeground(Color.WHITE);
+        titulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-    // === PANEL DE SELECCIÓN DE CHARLAS ===
-    JPanel panelSeleccion = new JPanel(new BorderLayout());
-    panelSeleccion.setOpaque(false);
-    
-    // Etiqueta instructiva
-    JLabel lblInstrucciones = new JLabel("Seleccione la charla que desea modificar:", SwingConstants.CENTER);
-    lblInstrucciones.setFont(new Font("Arial", Font.BOLD, 16));
-    lblInstrucciones.setForeground(Color.WHITE);
-    lblInstrucciones.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        // === PANEL DE SELECCIÓN DE CHARLAS ===
+        JPanel panelSeleccion = new JPanel(new BorderLayout());
+        panelSeleccion.setOpaque(false);
 
-    // Panel para las tarjetas de charlas disponibles
-    JPanel panelCharlas = new JPanel(new GridLayout(2, 1, 15, 15));
-    panelCharlas.setOpaque(false);
-    panelCharlas.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        // Etiqueta instructiva
+        JLabel lblInstrucciones = new JLabel("Seleccione la charla que desea modificar:", SwingConstants.CENTER);
+        lblInstrucciones.setFont(new Font("Arial", Font.BOLD, 16));
+        lblInstrucciones.setForeground(Color.WHITE);
+        lblInstrucciones.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
 
-    // Grupo de botones para seleccionar solo una charla
-    ButtonGroup grupoCharlas = new ButtonGroup();
-    JRadioButton[] radioButtons = new JRadioButton[horarios.length];
+        // Panel para las tarjetas de charlas disponibles
+        JPanel panelCharlas = new JPanel(new GridLayout(2, 1, 15, 15));
+        panelCharlas.setOpaque(false);
+        panelCharlas.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-    // Crea una tarjeta seleccionable para cada charla
-    for (int i = 0; i < horarios.length; i++) {
-        // Panel contenedor para cada opción de charla
-        JPanel tarjetaOpcion = new JPanel();
-        tarjetaOpcion.setLayout(new BorderLayout());
-        tarjetaOpcion.setBackground(new Color(0, 0, 0, 120));
-        tarjetaOpcion.setBorder(BorderFactory.createCompoundBorder(
+        // Grupo de botones para seleccionar solo una charla
+        ButtonGroup grupoCharlas = new ButtonGroup();
+        JRadioButton[] radioButtons = new JRadioButton[horarios.length];
+
+        // Crea una tarjeta seleccionable para cada charla
+        for (int i = 0; i < horarios.length; i++) {
+            // Panel contenedor para cada opción de charla
+            JPanel tarjetaOpcion = new JPanel();
+            tarjetaOpcion.setLayout(new BorderLayout());
+            tarjetaOpcion.setBackground(new Color(0, 0, 0, 120));
+            tarjetaOpcion.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 2),
+                    BorderFactory.createEmptyBorder(15, 20, 15, 20)
+            ));
+
+            // Radio button para seleccionar la charla
+            radioButtons[i] = new JRadioButton();
+            radioButtons[i].setOpaque(false);
+            radioButtons[i].setForeground(Color.WHITE);
+
+            // Panel de información de la charla
+            JPanel panelInfo = new JPanel(new BorderLayout());
+            panelInfo.setOpaque(false);
+
+            // Nombre de la charla
+            JLabel lblNombre = new JLabel(temas[i % temas.length]);
+            lblNombre.setFont(new Font("Arial", Font.BOLD, 18));
+            lblNombre.setForeground(Color.WHITE);
+
+            // Información adicional (horario y cupos)
+            int cupos = contarCupos(i);
+            JLabel lblDetalles = new JLabel(horarios[i] + " • " + cupos + "/30 cupos disponibles");
+            lblDetalles.setFont(new Font("Arial", Font.PLAIN, 14));
+            lblDetalles.setForeground(new Color(200, 200, 200));
+
+            // Añade la información al panel
+            panelInfo.add(lblNombre, BorderLayout.NORTH);
+            panelInfo.add(lblDetalles, BorderLayout.SOUTH);
+
+            // Ensambla la tarjeta
+            tarjetaOpcion.add(radioButtons[i], BorderLayout.WEST);
+            tarjetaOpcion.add(panelInfo, BorderLayout.CENTER);
+
+            // Añade efecto hover a la tarjeta
+            final int index = i;
+            tarjetaOpcion.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    tarjetaOpcion.setBackground(new Color(255, 255, 255, 30));
+                    tarjetaOpcion.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    tarjetaOpcion.setBackground(new Color(0, 0, 0, 120));
+                    tarjetaOpcion.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                }
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    radioButtons[index].setSelected(true);
+                }
+            });
+
+            // Añade el radio button al grupo y la tarjeta al panel
+            grupoCharlas.add(radioButtons[i]);
+            panelCharlas.add(tarjetaOpcion);
+        }
+
+        // === PANEL PARA EL NUEVO NOMBRE ===
+        JPanel panelNuevoNombre = new JPanel(new BorderLayout());
+        panelNuevoNombre.setOpaque(false);
+        panelNuevoNombre.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+
+        // Etiqueta para el campo del nuevo nombre
+        JLabel lblNuevoNombre = new JLabel("Nuevo nombre para la charla:");
+        lblNuevoNombre.setFont(new Font("Arial", Font.BOLD, 16));
+        lblNuevoNombre.setForeground(Color.WHITE);
+
+        // Campo de texto para el nuevo nombre
+        JTextField txtNuevoNombre = new JTextField();
+        txtNuevoNombre.setFont(new Font("Arial", Font.PLAIN, 16));
+        txtNuevoNombre.setPreferredSize(new Dimension(0, 40));
+        txtNuevoNombre.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 2),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
+        txtNuevoNombre.setBackground(new Color(255, 255, 255, 240));
 
-        // Radio button para seleccionar la charla
-        radioButtons[i] = new JRadioButton();
-        radioButtons[i].setOpaque(false);
-        radioButtons[i].setForeground(Color.WHITE);
+        // Añade componentes al panel del nuevo nombre
+        panelNuevoNombre.add(lblNuevoNombre, BorderLayout.NORTH);
+        panelNuevoNombre.add(Box.createVerticalStrut(10), BorderLayout.CENTER);
+        panelNuevoNombre.add(txtNuevoNombre, BorderLayout.SOUTH);
 
-        // Panel de información de la charla
-        JPanel panelInfo = new JPanel(new BorderLayout());
-        panelInfo.setOpaque(false);
+        // Ensambla el panel de selección
+        panelSeleccion.add(lblInstrucciones, BorderLayout.NORTH);
+        panelSeleccion.add(panelCharlas, BorderLayout.CENTER);
+        panelSeleccion.add(panelNuevoNombre, BorderLayout.SOUTH);
 
-        // Nombre de la charla
-        JLabel lblNombre = new JLabel(temas[i % temas.length]);
-        lblNombre.setFont(new Font("Arial", Font.BOLD, 18));
-        lblNombre.setForeground(Color.WHITE);
+        // === PANEL DE BOTONES ===
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
+        panelBotones.setOpaque(false);
 
-        // Información adicional (horario y cupos)
-        int cupos = contarCupos(i);
-        JLabel lblDetalles = new JLabel(horarios[i] + " • " + cupos + "/30 cupos disponibles");
-        lblDetalles.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblDetalles.setForeground(new Color(200, 200, 200));
+        // Botón para confirmar la modificación
+        BotonRedondeado btnModificar = new BotonRedondeado("MODIFICAR", 20);
+        btnModificar.setPreferredSize(new Dimension(140, 45));
+        btnModificar.setBackground(new Color(255, 152, 0));
+        btnModificar.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // Añade la información al panel
-        panelInfo.add(lblNombre, BorderLayout.NORTH);
-        panelInfo.add(lblDetalles, BorderLayout.SOUTH);
+        // Botón para cancelar
+        BotonRedondeado btnCancelar = new BotonRedondeado("CANCELAR", 20);
+        btnCancelar.setPreferredSize(new Dimension(130, 45));
+        btnCancelar.setBackground(new Color(96, 125, 139));
+        btnCancelar.setFont(new Font("Arial", Font.BOLD, 14));
 
-        // Ensambla la tarjeta
-        tarjetaOpcion.add(radioButtons[i], BorderLayout.WEST);
-        tarjetaOpcion.add(panelInfo, BorderLayout.CENTER);
-
-        // Añade efecto hover a la tarjeta
-        final int index = i;
-        tarjetaOpcion.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                tarjetaOpcion.setBackground(new Color(255, 255, 255, 30));
-                tarjetaOpcion.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // === ACCIONES DE LOS BOTONES ===
+        // Acción del botón MODIFICAR
+        btnModificar.addActionListener(e -> {
+            // Verificar que se haya seleccionado una charla
+            int charlaSeleccionada = -1;
+            for (int i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].isSelected()) {
+                    charlaSeleccionada = i;
+                    break;
+                }
             }
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                tarjetaOpcion.setBackground(new Color(0, 0, 0, 120));
-                tarjetaOpcion.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            if (charlaSeleccionada == -1) {
+                mostrarMensajeError(dialogo, "Debe seleccionar una charla para modificar");
+                return;
             }
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                radioButtons[index].setSelected(true);
+            // Verificar que se haya ingresado un nuevo nombre
+            String nuevoNombre = txtNuevoNombre.getText().trim();
+            if (nuevoNombre.isEmpty()) {
+                mostrarMensajeError(dialogo, "Debe ingresar un nuevo nombre para la charla");
+                return;
             }
+
+            // Realizar la modificación
+            String nombreAnterior = temas[charlaSeleccionada % temas.length];
+            temas[charlaSeleccionada % temas.length] = nuevoNombre;
+
+            // Mostrar mensaje de éxito
+            mostrarMensajeExito(dialogo, "Charla modificada exitosamente:\n\"" + nombreAnterior + "\" → \"" + nuevoNombre + "\"");
+
+            // Cerrar diálogo y refrescar interfaz
+            dialogo.dispose();
+            parent.dispose();
+            abrirInterfaz();
         });
 
-        // Añade el radio button al grupo y la tarjeta al panel
-        grupoCharlas.add(radioButtons[i]);
-        panelCharlas.add(tarjetaOpcion);
+        // Acción del botón CANCELAR
+        btnCancelar.addActionListener(e -> dialogo.dispose());
+
+        // Añadir botones al panel
+        panelBotones.add(btnModificar);
+        panelBotones.add(btnCancelar);
+
+        // === ENSAMBLAJE FINAL ===
+        panelPrincipal.add(titulo, BorderLayout.NORTH);
+        panelPrincipal.add(panelSeleccion, BorderLayout.CENTER);
+
+        fondoDialogo.add(panelPrincipal, BorderLayout.CENTER);
+        fondoDialogo.add(panelBotones, BorderLayout.SOUTH);
+
+        // Mostrar el diálogo
+        dialogo.setVisible(true);
     }
-
-    // === PANEL PARA EL NUEVO NOMBRE ===
-    JPanel panelNuevoNombre = new JPanel(new BorderLayout());
-    panelNuevoNombre.setOpaque(false);
-    panelNuevoNombre.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
-
-    // Etiqueta para el campo del nuevo nombre
-    JLabel lblNuevoNombre = new JLabel("Nuevo nombre para la charla:");
-    lblNuevoNombre.setFont(new Font("Arial", Font.BOLD, 16));
-    lblNuevoNombre.setForeground(Color.WHITE);
-
-    // Campo de texto para el nuevo nombre
-    JTextField txtNuevoNombre = new JTextField();
-    txtNuevoNombre.setFont(new Font("Arial", Font.PLAIN, 16));
-    txtNuevoNombre.setPreferredSize(new Dimension(0, 40));
-    txtNuevoNombre.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 2),
-            BorderFactory.createEmptyBorder(8, 12, 8, 12)
-    ));
-    txtNuevoNombre.setBackground(new Color(255, 255, 255, 240));
-
-    // Añade componentes al panel del nuevo nombre
-    panelNuevoNombre.add(lblNuevoNombre, BorderLayout.NORTH);
-    panelNuevoNombre.add(Box.createVerticalStrut(10), BorderLayout.CENTER);
-    panelNuevoNombre.add(txtNuevoNombre, BorderLayout.SOUTH);
-
-    // Ensambla el panel de selección
-    panelSeleccion.add(lblInstrucciones, BorderLayout.NORTH);
-    panelSeleccion.add(panelCharlas, BorderLayout.CENTER);
-    panelSeleccion.add(panelNuevoNombre, BorderLayout.SOUTH);
-
-    // === PANEL DE BOTONES ===
-    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15));
-    panelBotones.setOpaque(false);
-
-    // Botón para confirmar la modificación
-    BotonRedondeado btnModificar = new BotonRedondeado("MODIFICAR", 20);
-    btnModificar.setPreferredSize(new Dimension(140, 45));
-    btnModificar.setBackground(new Color(255, 152, 0));
-    btnModificar.setFont(new Font("Arial", Font.BOLD, 14));
-
-    // Botón para cancelar
-    BotonRedondeado btnCancelar = new BotonRedondeado("CANCELAR", 20);
-    btnCancelar.setPreferredSize(new Dimension(130, 45));
-    btnCancelar.setBackground(new Color(96, 125, 139));
-    btnCancelar.setFont(new Font("Arial", Font.BOLD, 14));
-
-    // === ACCIONES DE LOS BOTONES ===
-    
-    // Acción del botón MODIFICAR
-    btnModificar.addActionListener(e -> {
-        // Verificar que se haya seleccionado una charla
-        int charlaSeleccionada = -1;
-        for (int i = 0; i < radioButtons.length; i++) {
-            if (radioButtons[i].isSelected()) {
-                charlaSeleccionada = i;
-                break;
-            }
-        }
-
-        if (charlaSeleccionada == -1) {
-            mostrarMensajeError(dialogo, "Debe seleccionar una charla para modificar");
-            return;
-        }
-
-        // Verificar que se haya ingresado un nuevo nombre
-        String nuevoNombre = txtNuevoNombre.getText().trim();
-        if (nuevoNombre.isEmpty()) {
-            mostrarMensajeError(dialogo, "Debe ingresar un nuevo nombre para la charla");
-            return;
-        }
-
-        // Realizar la modificación
-        String nombreAnterior = temas[charlaSeleccionada % temas.length];
-        temas[charlaSeleccionada % temas.length] = nuevoNombre;
-
-        // Mostrar mensaje de éxito
-        mostrarMensajeExito(dialogo, "Charla modificada exitosamente:\n\"" + nombreAnterior + "\" → \"" + nuevoNombre + "\"");
-        
-        // Cerrar diálogo y refrescar interfaz
-        dialogo.dispose();
-        parent.dispose();
-        abrirInterfaz();
-    });
-
-    // Acción del botón CANCELAR
-    btnCancelar.addActionListener(e -> dialogo.dispose());
-
-    // Añadir botones al panel
-    panelBotones.add(btnModificar);
-    panelBotones.add(btnCancelar);
-
-    // === ENSAMBLAJE FINAL ===
-    panelPrincipal.add(titulo, BorderLayout.NORTH);
-    panelPrincipal.add(panelSeleccion, BorderLayout.CENTER);
-
-    fondoDialogo.add(panelPrincipal, BorderLayout.CENTER);
-    fondoDialogo.add(panelBotones, BorderLayout.SOUTH);
-
-    // Mostrar el diálogo
-    dialogo.setVisible(true);
-}
 
 // Muestra los detalles de una charla específica en un cuadro de diálogo
     private void mostrarDetallesCharla(int index, JFrame parent) {
