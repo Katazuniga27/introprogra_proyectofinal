@@ -13,12 +13,15 @@ import javax.swing.*;
  * @author andreyvargassolis
  */
 public class Cabina {
-    //atributos 
+    // Atributos 
+    // Horas disponibles en arreglo
     private final String[] horarios = {"9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"};
+    // Matriz que guarda reservas 
     private final int[][] reservas; // [cabina][horario] = ID de socio (0 = libre)
+    // Arreglo que tiene los nombres de las cabinas
     private final String[] nombresCabinas = {"Cabina 1", "Cabina 2", "Cabina 3", "Cabina 4", "Cabina 5"};
 
-    //constructor vacío
+    // Inicializo la matriz "reservas" que cada una tiene 5 cabinas y 9 horarios, le pongo 0 a todas (libre)
     public Cabina() {
         reservas = new int[5][9];
         for (int i = 0; i < 5; i++) {
@@ -28,7 +31,7 @@ public class Cabina {
         }
     }
 
-    //método para menú
+    // Método para menú
     public void menuCabinas() {
         boolean salir = false;
         while (!salir) {
@@ -39,28 +42,28 @@ public class Cabina {
                 "3. Cancelar reserva\n" +
                 "4. Salir");
             
-            if (opcion == null) break;
+            if (opcion == null) break; // si el usuario cierra la venatana, se sale del menú
 
             switch (opcion) {
                 case "1":
-                    mostrarDisponibilidad();
+                    mostrarDisponibilidad(); // muestra cabinas y horarios libres u ocupados
                     break;
                     
                 case "2":
-                    Usuario uInC = seleccionarUsuarioCabina();
-                    if (uInC != null && uInC.isActivo()) {
-                        reservarCabina(uInC.getId());
+                    Usuario uInC = seleccionarUsuarioCabina(); // Pido que se ingrese ID de usuario
+                    if (uInC != null && uInC.isActivo()) { // Verifico que no sea null y que esté activo
+                        reservarCabina(uInC.getId()); // se reserva la cabina
                     } else {
-                        JOptionPane.showMessageDialog(null, "Usuario inválido o inactivo.");
+                        JOptionPane.showMessageDialog(null, "Usuario inválido o inactivo."); // muestro mensaje 
                     }
                     break;
                     
                 case "3":
-                    Usuario uOtC = seleccionarUsuarioCabina();
-                    if (uOtC != null && uOtC.isActivo()) {
-                        cancelarReserva(uOtC.getId());
+                    Usuario uOtC = seleccionarUsuarioCabina(); // Pido que se ingrese ID de usuario
+                    if (uOtC != null && uOtC.isActivo()) { // Verifico que no sea null y que esté activo
+                        cancelarReserva(uOtC.getId()); // se cancela la cabina
                     } else {
-                        JOptionPane.showMessageDialog(null, "Usuario inválido o inactivo.");
+                        JOptionPane.showMessageDialog(null, "Usuario inválido o inactivo."); // muestro mensaje 
                     }
                     break;
                 case "4":
@@ -72,63 +75,75 @@ public class Cabina {
         }
     }
     
+    // Método para pedir ID del usuario
     private Usuario seleccionarUsuarioCabina() {
         String input = JOptionPane.showInputDialog( "\nIngrese el ID del usuario:");
-        if (input == null) return null;
+        if (input == null) return null; // se cierra la ventana si es null
 
         try {
-            int id = Integer.parseInt(input);
-            return Usuario.buscarPorId(id);
+            int id = Integer.parseInt(input); // Convierto de texto a número
+            return Usuario.buscarPorId(id); // Si es válido, llamo a buscar por id
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "ID inválido.");
+            JOptionPane.showMessageDialog(null, "ID inválido."); // muestro mensaje si hay error
             return null;
         }
     }
 
+    // Método para ver la disponibilidad de las cabinas
     private void mostrarDisponibilidad() {
         StringBuilder mensaje = new StringBuilder("HORARIOS (9:00 - 17:00)\nCabina\\Hora\t");
         for (String hora : horarios) mensaje.append(hora).append("\t");
-        mensaje.append("\n");
+        mensaje.append("\n"); // Creo el encabezado de la tabla, nombres de horarios en la parte superior
         
+        // Recorro todas las cabinas (i) y todos los horarios (j)
         for (int i = 0; i < 5; i++) {
             mensaje.append(nombresCabinas[i]).append("\t");
             for (int j = 0; j < 9; j++) {
-                mensaje.append(reservas[i][j] == 0 ? "L" : "O").append("\t");
+                mensaje.append(reservas[i][j] == 0 ? "L" : "O").append("\t"); // si el valor en reservas[i][j] es 0, pongo L, si no, "O" Ocupado
             }
             mensaje.append("\n");
         }
-        JOptionPane.showMessageDialog(null, mensaje.toString());
+        JOptionPane.showMessageDialog(null, mensaje.toString()); // muestro la tabla completa 
     }
 
+    // Método para reservar la cabina
     private void reservarCabina(int id) {
-        int ids = id;
+        int ids = id; // guardo el ID de los usuarios en ids
 
+        // Pido al usuario elegir la cabina por número
+        // le resto 1 para que coincida con el índice del arreglo
         int cabina = Integer.parseInt(JOptionPane.showInputDialog(
             "Seleccione cabina:\n1. Cabina 1\n2. Cabina 2\n3. Cabina 3\n4. Cabina 4\n5. Cabina 5")) - 1;
         
+        // Pido al usuario elegir el horario por número
+        // le resto 1 para que coincida con el índice del arreglo
         int horario = Integer.parseInt(JOptionPane.showInputDialog(
             "Seleccione horario (1-9):\n1. 9:00\n2. 10:00\n...")) - 1;
         
+        //Si está libre (0) lo reservo con el ID de usuario
         if (reservas[cabina][horario] == 0) {
             reservas[cabina][horario] = ids;
             JOptionPane.showMessageDialog(null, "Reserva exitosa para " + horarios[horario]);
         } else {
-            JOptionPane.showMessageDialog(null, "Horario ocupado");
+            JOptionPane.showMessageDialog(null, "Horario ocupado"); // Ocupado, aviso con mensaje
         }
     }
 
+    // Método para la cancelación de una reserva
     private void cancelarReserva(int id) {
         int ids = id;
+        
+        // Recorro todas las cabinas y hoarios para buscar reservas hechas por ese ID
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 9; j++) {
                 if (reservas[i][j] == ids) {
-                    reservas[i][j] = 0;
-                    JOptionPane.showMessageDialog(null, "Reserva cancelada");
+                    reservas[i][j] = 0; 
+                    JOptionPane.showMessageDialog(null, "Reserva cancelada"); // Se cancela si se encuentra
                     return;
                 }
             }
         }
-        JOptionPane.showMessageDialog(null, "No se encontraron reservas para este ID");
+        JOptionPane.showMessageDialog(null, "No se encontraron reservas para este ID"); // Se muestra mensaje si no se encuentra
     }
 
     public void abrirInterfaz() {
